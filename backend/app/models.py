@@ -10,7 +10,7 @@ class Generation(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     status: Mapped[str] = mapped_column(String(20), default="PENDING")  # PENDING | PROCESSING | DONE | FAILED
     prompt: Mapped[str] = mapped_column(String(2000))
-    quality: Mapped[str] = mapped_column(String(10), default="512P")    # 512P | 1024P
+    quality: Mapped[str] = mapped_column(String(10), default="480P")    # 480P | 720P
     image_url: Mapped[str] = mapped_column(String(500))
     video_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     error_message: Mapped[str | None] = mapped_column(String(1000), nullable=True)

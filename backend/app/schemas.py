@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 class GenerationCreate(BaseModel):
     prompt: str
-    quality: str = "512P"
+    quality: str = "480P"
 
 
 class GenerationOut(BaseModel):

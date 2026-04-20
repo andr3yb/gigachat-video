@@ -21,12 +21,12 @@ MAX_FILE_SIZE = 20 * 1024 * 1024  # 20 MB
 @router.post("/generate", response_model=GenerationOut, status_code=201)
 async def create_generation(
     prompt: str = Form(..., min_length=1, max_length=2000),
-    quality: str = Form("512P"),
+    quality: str = Form("480P"),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
-    if quality not in ("512P", "1024P"):
-        raise HTTPException(status_code=422, detail="quality must be 512P or 1024P")
+    if quality not in ("480P", "720P", "512P", "1024P"):
+        raise HTTPException(status_code=422, detail="quality must be 480P or 720P")
 
     suffix = Path(file.filename or "").suffix.lower()
     if suffix not in ALLOWED_EXTENSIONS:
