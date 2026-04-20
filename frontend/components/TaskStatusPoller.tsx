@@ -8,6 +8,25 @@ type Props = {
 };
 
 const TERMINAL_STATUSES = new Set(["DONE", "FAILED"]);
+const STATUS_PROGRESS: Record<string, number> = {
+  PENDING: 20,
+  PROCESSING: 70,
+  DONE: 100,
+  FAILED: 100
+};
+
+function statusClass(status: string): string {
+  switch (status) {
+    case "DONE":
+      return "done";
+    case "FAILED":
+      return "failed";
+    case "PROCESSING":
+      return "processing";
+    default:
+      return "pending";
+  }
+}
 
 export default function TaskStatusPoller({ generationId }: Props) {
   const [task, setTask] = useState<TaskStatus | null>(null);
@@ -56,17 +75,35 @@ export default function TaskStatusPoller({ generationId }: Props) {
     return <p className="muted">Загрузка статуса...</p>;
   }
 
+  const status = String(task.status || "PENDING").toUpperCase();
+  const progress = STATUS_PROGRESS[status] ?? 20;
+
   return (
     <div className="card">
-      <h3>Статус генерации #{task.id}</h3>
-      <p>Текущий статус: {task.status}</p>
-      {task.error_message && <p>Ошибка: {task.error_message}</p>}
+      <div className="row" style={{ justifyContent: "space-between" }}>
+        <h3 style={{ margin: 0 }}>Статус генерации #{task.id}</h3>
+        <span className={`status-pill ${statusClass(status)}`}>{status}</span>
+      </div>
+      <div className="progress" style={{ marginTop: 10 }}>
+        <span style={{ width: `${progress}%` }} />
+      </div>
+      <p className="muted" style={{ marginBottom: 0 }}>
+        Прогресс: {progress}%
+      </p>
+
+      {task.error_message && <p className="error">Ошибка: {task.error_message}</p>}
       {task.video_url && (
-        <p>
-          <a href={task.video_url} target="_blank" rel="noreferrer">
-            Открыть видео
-          </a>
-        </p>
+        <>
+          <video className="video" src={task.video_url} controls playsInline />
+          <div className="row" style={{ marginTop: 10 }}>
+            <a className="btn secondary" href={task.video_url} target="_blank" rel="noreferrer">
+              Открыть в новой вкладке
+            </a>
+            <a className="btn secondary" href={task.video_url} download>
+              Скачать MP4
+            </a>
+          </div>
+        </>
       )}
     </div>
   );

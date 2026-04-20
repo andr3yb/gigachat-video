@@ -3,10 +3,24 @@
 import { useEffect, useState } from "react";
 import { deleteVideo, getVideos, type GenerationOut } from "@/lib/api";
 
+function statusClass(status: string): string {
+  switch (status) {
+    case "DONE":
+      return "done";
+    case "FAILED":
+      return "failed";
+    case "PROCESSING":
+      return "processing";
+    default:
+      return "pending";
+  }
+}
+
 export default function GalleryList() {
   const [items, setItems] = useState<GenerationOut[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const load = async () => {
     try {
@@ -26,10 +40,13 @@ export default function GalleryList() {
 
   const onDelete = async (id: number) => {
     try {
+      setDeletingId(id);
       await deleteVideo(id);
       setItems((prev) => prev.filter((item) => item.id !== id));
     } catch {
       setError("Не удалось удалить видео");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -38,7 +55,7 @@ export default function GalleryList() {
   }
 
   if (error) {
-    return <p>{error}</p>;
+    return <p className="error">{error}</p>;
   }
 
   if (items.length === 0) {
@@ -49,25 +66,36 @@ export default function GalleryList() {
     <div className="gallery-grid" style={{ marginTop: 16 }}>
       {items.map((item) => (
         <article key={item.id} className="card">
-          <h3>#{item.id}</h3>
-          <p className="muted">Статус: {item.status}</p>
-          <p>{item.prompt}</p>
+          <div className="row" style={{ justifyContent: "space-between" }}>
+            <h3 style={{ margin: 0 }}>#{item.id}</h3>
+            <span className={`status-pill ${statusClass(String(item.status))}`}>{item.status}</span>
+          </div>
+          <p style={{ marginTop: 10 }}>{item.prompt}</p>
           <p className="muted">Качество: {item.quality}</p>
           {item.video_url ? (
-            <div className="row">
-              <a href={item.video_url} target="_blank" rel="noreferrer">
-                Открыть
-              </a>
-              <a href={item.video_url} download>
-                Скачать
-              </a>
-            </div>
+            <>
+              <video className="video" src={item.video_url} controls playsInline />
+              <div className="row" style={{ marginTop: 10 }}>
+                <a className="btn secondary" href={item.video_url} target="_blank" rel="noreferrer">
+                  Открыть
+                </a>
+                <a className="btn secondary" href={item.video_url} download>
+                  Скачать
+                </a>
+              </div>
+            </>
           ) : (
             <p className="muted">Видео ещё не готово</p>
           )}
 
-          <button type="button" style={{ marginTop: 10 }} onClick={() => void onDelete(item.id)}>
-            Удалить
+          <button
+            type="button"
+            className="btn secondary"
+            style={{ marginTop: 10 }}
+            disabled={deletingId === item.id}
+            onClick={() => void onDelete(item.id)}
+          >
+            {deletingId === item.id ? "Удаление..." : "Удалить"}
           </button>
         </article>
       ))}

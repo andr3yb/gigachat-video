@@ -12,10 +12,17 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="ru">
       <body>
         <main className="page">
-          <nav className="row">
-            <Link href="/">Генерация</Link>
-            <Link href="/gallery">Галерея</Link>
-          </nav>
+          <header className="topbar">
+            <div className="brand">AI Video Factory</div>
+            <nav className="nav">
+              <Link className="nav-link" href="/">
+                Генерация
+              </Link>
+              <Link className="nav-link" href="/gallery">
+                Галерея
+              </Link>
+            </nav>
+          </header>
           {children}
         </main>
       </body>

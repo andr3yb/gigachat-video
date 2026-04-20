@@ -53,9 +53,13 @@ export default function GenerateForm() {
     <>
       <form className="card" onSubmit={onSubmit}>
         <h2>Генерация видео</h2>
+        <p className="muted" style={{ marginTop: -4 }}>
+          Модель: WAN 2.2 Spicy
+        </p>
 
         <label htmlFor="prompt">Промпт</label>
         <textarea
+          className="textarea"
           id="prompt"
           value={prompt}
           onChange={(event) => setPrompt(event.target.value)}
@@ -63,7 +67,6 @@ export default function GenerateForm() {
           maxLength={2000}
           required
           rows={5}
-          style={{ width: "100%", marginTop: 8 }}
           placeholder="Опишите желаемую анимацию"
         />
 
@@ -140,12 +143,12 @@ export default function GenerateForm() {
         </div>
 
         {error && (
-          <p style={{ color: "tomato", marginTop: 16 }} role="alert">
+          <p className="error" role="alert">
             {error}
           </p>
         )}
 
-        <button type="submit" disabled={isSubmitting} style={{ marginTop: 16 }}>
+        <button className="btn" type="submit" disabled={isSubmitting} style={{ marginTop: 16 }}>
           {isSubmitting ? "Отправка..." : "Сгенерировать"}
         </button>
       </form>
