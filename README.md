@@ -1,27 +1,36 @@
-# AI Video Factory (Kandinsky 5.0 via WaveSpeedAI)
+# AI Video Factory (WaveSpeedAI WAN 2.2 Spicy)
 
-Сервис генерирует 5-секундные видео по загруженному изображению и текстовому промпту через `wavespeed.ai` (Kandinsky 5.0).
+Веб-сервис для генерации 5-секундных видео из изображения и текстового промпта через `WaveSpeedAI`.
 
 ## Стек
 
 - `FastAPI` + `Celery` + `Redis`
 - `PostgreSQL`
-- `Next.js` (frontend)
+- `Next.js` (App Router, frontend)
 - `Nginx` reverse proxy
 - `Docker Compose`
 
 ## Что реализовано
 
-- Загрузка изображения (`jpg`, `jpeg`, `png`, `webp`) + ввод промпта + выбор качества `512P`/`1024P`
-- Асинхронная генерация видео через очередь Celery
-- Retry-логика в воркере (до 3 попыток, exponential backoff)
-- Поллинг статуса задачи на фронтенде (каждые 3 секунды)
-- Галерея генераций: просмотр, скачивание, удаление
+- Загрузка изображения (`jpg`, `jpeg`, `png`, `webp`) + ввод промпта
+- Выбор качества `480P` / `720P` (под модель `WAN 2.2 Spicy`)
+- Асинхронная генерация через очередь Celery
+- Retry-логика (до 3 повторов, exponential backoff)
+- Поллинг статуса на фронте каждые 3 секунды
+- Встроенный видеоплеер в статусе и в галерее (без открытия по ссылке)
+- Галерея генераций: предпросмотр, скачивание, удаление
+- Обработка ошибок валидации и ошибок внешнего API
 
-## API
+## Модель и API
 
-- `POST /api/generate` — создать генерацию (multipart form: `file`, `prompt`, `quality`)
-- `GET /api/tasks/{id}` — статус генерации (`PENDING`, `PROCESSING`, `DONE`, `FAILED`)
+- Провайдер: `WaveSpeedAI`
+- Модель по умолчанию: `wavespeed-ai/wan-2.2-spicy/image-to-video`
+- Поддерживаемые разрешения модели: `480p`, `720p`
+
+## API backend
+
+- `POST /api/generate` — создать генерацию (`multipart/form-data`: `file`, `prompt`, `quality`)
+- `GET /api/tasks/{id}` — получить статус (`PENDING`, `PROCESSING`, `DONE`, `FAILED`)
 - `GET /api/videos` — список генераций
 - `GET /api/videos/{id}` — получить одну генерацию
 - `DELETE /api/videos/{id}` — удалить генерацию
@@ -29,30 +38,36 @@
 
 ## Быстрый запуск
 
-1. Скопируйте пример окружения:
+1. Скопируйте окружение:
 
 ```bash
 cp .env.example .env
 ```
 
-2. Заполните в `.env`:
+2. Заполните `.env`:
 
 - `WAVESPEED_API_KEY=<ваш_ключ>`
-- при необходимости поменяйте `POSTGRES_*`, `BASE_URL`, `NEXT_PUBLIC_API_URL`
+- при необходимости: `WAVESPEED_MODEL_ID`, `WAVESPEED_*`, `POSTGRES_*`, `BASE_URL`, `NEXT_PUBLIC_API_URL`
 
-3. Поднимите все сервисы:
+3. Поднимите проект:
 
 ```bash
 make up-all
 ```
 
-После старта:
+Если `make` не установлен (часто на Windows), используйте:
 
-- UI: [http://localhost](http://localhost)
+```bash
+docker compose up -d --build
+```
+
+## Адреса после запуска
+
+- Приложение: [http://localhost](http://localhost)
 - Backend docs: [http://localhost/docs](http://localhost/docs)
 - Прямой backend: [http://localhost:8000](http://localhost:8000)
 
-## Docker Compose сервисы
+## Сервисы Docker Compose
 
 - `postgres`
 - `redis`
@@ -61,13 +76,14 @@ make up-all
 - `frontend`
 - `nginx`
 
-## Проверка (чек-лист)
+## Предсдачный чек-лист
 
-- `curl http://localhost/api/health` возвращает `{"status":"ok"}`
-- из UI форма отправляет `POST /api/generate`
-- в UI статус проходит путь `PENDING -> PROCESSING -> DONE`
-- в `Gallery` работает скачивание/удаление
-- после `make down && make up-all` записи в БД сохраняются
+- `docker compose up` поднимает все сервисы
+- Можно загрузить картинку и получить видео
+- Статусы в UI меняются корректно: `PENDING -> PROCESSING -> DONE`
+- Готовые видео отображаются в галерее
+- Ошибки обрабатываются (например, пустой prompt -> `422`)
+- API ключи не закоммичены (`.env` не должен трекаться git)
 
 ## Полезные команды
 
@@ -78,7 +94,16 @@ make down
 make down-v
 ```
 
-## Примечания по безопасности
+Эквиваленты без `make`:
 
-- Не коммитьте `.env` в git
-- Если API-ключ уже утёк в историю, обязательно отзовите и выпустите новый
+```bash
+docker compose ps
+docker compose logs -f backend celery_worker
+docker compose down
+docker compose down -v
+```
+
+## Безопасность
+
+- Никогда не коммитьте `.env` и реальные API ключи
+- Если ключ засветился, отзовите его и выпустите новый
