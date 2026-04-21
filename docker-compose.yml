@@ -41,7 +41,7 @@ services:
       - "8000:8000"
 
   celery_worker:
-    image: asskkord/gigachat:gigachat-video-backend
+    image: asskkord/gigachat:gigachat-video-celery_worker
     command: celery -A app.celery_app worker --loglevel=info --concurrency=2
     restart: unless-stopped
     env_file: .env
