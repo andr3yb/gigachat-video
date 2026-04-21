@@ -24,8 +24,7 @@ services:
       retries: 10
 
   backend:
-    build:
-      context: ./backend
+    image: asskkord/gigachat:gigachat-video-backend
     restart: unless-stopped
     env_file: .env
     environment:
@@ -42,8 +41,7 @@ services:
       - "8000:8000"
 
   celery_worker:
-    build:
-      context: ./backend
+    image: asskkord/gigachat:gigachat-video-backend
     command: celery -A app.celery_app worker --loglevel=info --concurrency=2
     restart: unless-stopped
     env_file: .env
@@ -59,8 +57,7 @@ services:
         condition: service_healthy
 
   frontend:
-    build:
-      context: ./frontend
+    image: asskkord/gigachat:gigachat-video-frontend
     restart: unless-stopped
     env_file: .env
     environment:
