@@ -1,10 +1,9 @@
-import os
 import time
 import logging
 import base64
 import mimetypes
 from datetime import datetime, timezone
-from pathlib import Path
+from urllib.parse import urlparse
 
 import httpx
 from celery import Task
@@ -13,19 +12,20 @@ from sqlalchemy.orm import Session
 from app.celery_app import celery_app
 from app.database import SessionLocal
 from app.models import Generation
+from app.settings import (
+    UPLOAD_DIR,
+    STATIC_UPLOADS_URL_PREFIX,
+    WAVESPEED_API_KEY,
+    WAVESPEED_BASE_URL,
+    WAVESPEED_MODEL_ID,
+    WAVESPEED_POLL_INTERVAL_SEC,
+    WAVESPEED_POLL_TIMEOUT_SEC,
+    WAVESPEED_RESOLUTION_HIGH,
+    WAVESPEED_RESOLUTION_LOW,
+    WAVESPEED_IMAGE_FIELD,
+)
 
 logger = logging.getLogger(__name__)
-
-WAVESPEED_API_KEY = os.environ.get("WAVESPEED_API_KEY") or os.environ.get("FAL_KEY", "")
-WAVESPEED_BASE_URL = os.environ.get("WAVESPEED_BASE_URL", "https://api.wavespeed.ai/api/v3")
-WAVESPEED_MODEL_ID = os.environ.get(
-    "WAVESPEED_MODEL_ID", "wavespeed-ai/kandinsky5-pro/image-to-video"
-)
-WAVESPEED_POLL_TIMEOUT_SEC = int(os.environ.get("WAVESPEED_POLL_TIMEOUT_SEC", "180"))
-WAVESPEED_POLL_INTERVAL_SEC = float(os.environ.get("WAVESPEED_POLL_INTERVAL_SEC", "2"))
-WAVESPEED_RESOLUTION_LOW = os.environ.get("WAVESPEED_RESOLUTION_LOW", "480p")
-WAVESPEED_RESOLUTION_HIGH = os.environ.get("WAVESPEED_RESOLUTION_HIGH", "720p")
-WAVESPEED_IMAGE_FIELD = os.environ.get("WAVESPEED_IMAGE_FIELD", "image")
 
 
 def _get_db() -> Session:
@@ -49,11 +49,13 @@ def _extract_output_url(outputs: list | None) -> str:
 def _build_image_input(image_url: str) -> str:
     """
     WaveSpeed can accept either public URL or base64 image.
-    Localhost URLs are not reachable from WaveSpeed, so use base64 for local files.
+    For images stored in our `/static/uploads/`, we always send base64 to avoid
+    relying on VM/public reachability.
     """
-    if image_url.startswith("http://localhost") or image_url.startswith("http://127.0.0.1"):
-        filename = image_url.rsplit("/", 1)[-1]
-        local_path = Path("/uploads") / filename
+    parsed = urlparse(image_url)
+    if parsed.path.startswith(f"{STATIC_UPLOADS_URL_PREFIX}/"):
+        filename = parsed.path.rsplit("/", 1)[-1]
+        local_path = UPLOAD_DIR / filename
         if not local_path.exists():
             raise RuntimeError(f"Local image not found for WaveSpeed request: {local_path}")
         binary = local_path.read_bytes()

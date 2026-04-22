@@ -28,8 +28,8 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-gigachat}:${POSTGRES_PASSWORD:-gigachat}@postgres:5432/${POSTGRES_DB:-gigachat_video}
-      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-gigachat}:${POSTGRES_PASSWORD:-gigachat}@postgres:5432/${POSTGRES_DB:-gigachat_video}}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
     volumes:
       - uploads:/uploads
     depends_on:
@@ -46,8 +46,8 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-gigachat}:${POSTGRES_PASSWORD:-gigachat}@postgres:5432/${POSTGRES_DB:-gigachat_video}
-      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-gigachat}:${POSTGRES_PASSWORD:-gigachat}@postgres:5432/${POSTGRES_DB:-gigachat_video}}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
     volumes:
       - uploads:/uploads
     depends_on:
@@ -61,7 +61,8 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost/api}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
+      NEXT_INTERNAL_API_URL: ${NEXT_INTERNAL_API_URL:-http://backend:8000/api}
     depends_on:
       - backend
     ports:

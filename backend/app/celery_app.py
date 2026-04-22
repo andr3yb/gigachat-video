@@ -1,7 +1,6 @@
-import os
 from celery import Celery
 
-REDIS_URL = os.environ.get("REDIS_URL", "redis://redis:6379/0")
+from app.settings import REDIS_URL
 
 celery_app = Celery(
     "gigachat_video",

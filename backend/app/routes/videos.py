@@ -1,15 +1,12 @@
-from pathlib import Path
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Generation
 from app.schemas import GenerationOut, TaskStatus
+from app.settings import UPLOAD_DIR
 
 router = APIRouter()
-
-UPLOAD_DIR = Path("/uploads")
 
 
 @router.get("/tasks/{generation_id}", response_model=TaskStatus)

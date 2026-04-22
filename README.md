@@ -44,10 +44,21 @@
 cp .env.example .env
 ```
 
-2. Заполните `.env`:
+2. Откройте `.env` и **обязательно** заполните:
 
-- `WAVESPEED_API_KEY=<ваш_ключ>`
-- при необходимости: `WAVESPEED_MODEL_ID`, `WAVESPEED_*`, `POSTGRES_*`, `BASE_URL`, `NEXT_PUBLIC_API_URL`
+- `WAVESPEED_API_KEY=<ваш_ключ>` (иначе генерации будут падать с `FAILED`)
+
+Рекомендуемые настройки:
+
+- `BASE_URL=` оставить пустым (по умолчанию берётся хост из входящего запроса, удобно для VM/IP/домена)
+
+Опционально (если надо):
+
+- `DATABASE_URL`, `REDIS_URL` — если хотите подключаться к внешним БД/Redis
+- `WAVESPEED_MODEL_ID`, `WAVESPEED_*` — если меняете модель/таймауты
+- `UPLOAD_DIR`, `STATIC_UPLOADS_URL_PREFIX`, `MAX_UPLOAD_MB` — если меняете хранение/лимиты
+- `NEXT_PUBLIC_API_URL` — обычно оставляем `/api`
+- `NEXT_INTERNAL_API_URL` — URL бэкенда для проксирования `/api` при открытии фронта напрямую на `:3000`
 
 3. Поднимите проект:
 
@@ -63,9 +74,10 @@ docker compose up -d --build
 
 ## Адреса после запуска
 
-- Приложение: [http://localhost](http://localhost)
-- Backend docs: [http://localhost/docs](http://localhost/docs)
-- Прямой backend: [http://localhost:8000](http://localhost:8000)
+- Основной вход (через nginx): `http://<host>` (порт 80)
+- Backend docs: `http://<host>/docs`
+- Прямой backend (без nginx): `http://<host>:8000`
+- Фронт напрямую (без nginx): `http://<host>:3000` (API всё равно работает, т.к. `/api/*` проксируется в backend)
 
 ## Сервисы Docker Compose
 
