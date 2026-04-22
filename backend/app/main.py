@@ -1,5 +1,4 @@
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,8 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from app.database import init_db
 from app.routes.generate import router as generate_router
 from app.routes.videos import router as videos_router
-
-UPLOAD_DIR = Path("/uploads")
+from app.settings import UPLOAD_DIR, STATIC_UPLOADS_URL_PREFIX
 
 
 @asynccontextmanager
@@ -28,7 +26,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/static/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
+app.mount(STATIC_UPLOADS_URL_PREFIX, StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 
 app.include_router(generate_router, prefix="/api")
 app.include_router(videos_router, prefix="/api")

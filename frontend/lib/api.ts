@@ -21,7 +21,8 @@ export type TaskStatus = {
   error_message: string | null;
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost/api";
+// Prefer relative URL so the same build works on VM/IP/domain behind nginx.
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "/api";
 
 export async function createGeneration(formData: FormData): Promise<GenerationOut> {
   const response = await fetch(`${API_URL}/generate`, {
